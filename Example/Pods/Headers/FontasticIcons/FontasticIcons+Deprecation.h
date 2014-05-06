@@ -1,0 +1,1 @@
+../../FontasticIcons/FontasticIcons/Sources/Classes/FontasticIcons+Deprecation.h
