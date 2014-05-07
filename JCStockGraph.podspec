@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.version          = "0.1.0"
   s.summary          = "A simple graph view controller which displays a stock's historical price data from the Yahoo finance API."
   s.homepage         = "http://github.com/jconst/JCStockGraph"
-  s.screenshots      = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
+  s.screenshots      = "https://github.com/jconst/JCStockGraph/raw/master/ss1.png", "https://github.com/jconst/JCStockGraph/raw/master/ss2.png"
   s.license          = 'MIT'
   s.author           = { "Joseph Constantakis" => "jcon5294@gmail.com" }
   s.source           = { :git => "http://github.com/jconst/JCStockGraph.git", :tag => s.version.to_s }
@@ -19,7 +19,6 @@ Pod::Spec.new do |s|
   s.requires_arc = true
 
   s.source_files = 'Classes'
-  s.resources = 'Assets/*.png'
 
   s.public_header_files = 'Classes/*.h'
   s.dependency 'CorePlot', '~> 1.5'

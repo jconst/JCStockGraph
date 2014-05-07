@@ -5,9 +5,9 @@
 
 JCStockGraph is an easy way to show historical price graphs for any security (that is listed in the Yahoo finance api). Here are some example screenshots of the graphs being used in the [Benzinga Stock Tracker](https://itunes.apple.com/us/app/benzinga-stock-news-tracker/id688949481?mt=8) app:
 
-<img src="ss1.png" width=40%></img>
+<img src="ss1.png" width=70%></img>
 
-<img src="ss2.gif" width=70%></img>
+<img src="ss2.gif" width=40%></img>
 
 ## Features
 
@@ -24,14 +24,14 @@ For a single graph, use JCStockGraphController. For a page-able scroll view cont
 ```objectivec
     self.graph = [[JCStockGraphPageController alloc] initWithTicker:@"AAPL"];
     // or self.graph = [[JCStockGraphController alloc] initWithTicker:@"AAPL"]; for just one page
-    
+
     self.graph.view.frame           = CGRectMake(0, 100, 320, 100);
     self.graph.graphOffset          = CGPointMake(8, 0);
     self.graph.graphSize            = CGSizeMake(290, 90);
     self.graph.graphOptions         = kGraphOptionSmoothGraph | kGraphOptionHideXAxis | kGraphOptionHideGrid;
     self.graph.shouldAutoscroll     = YES;
     self.graph.shouldShowRotateHint = NO;
-    
+
     [self.view addSubview:self.graph.view];
 ```
 
@@ -45,12 +45,12 @@ JCStockGraph is available through [CocoaPods](http://cocoapods.org), to install
 it simply add the following line to your Podfile:
 
     pod "JCStockGraph"
-    
+
 It is worth noting that JCStockGraph has 5 separate dependencies, which many would consider to be a high amount for a fairly small control. At least the last two (MTDates and FontasticIcons) could likely by replaced without much effort, and MBProgressHUD & AFNetworking aren't strictly necessary either. If you do decide to replace any of them with custom code, by all means submit me a pull request!
 
 ## Known Issues
 
-- If a stock has only been public for 3 months, for example, the 5-year, 1-year, and 3-month graphs will all be duplicates. There is probably a more elegant way to handle this (removing the unnecessary ranges, or maybe just always showing the full time range, even when it's mostly empty). 
+- If a stock has only been public for 3 months, for example, the 5-year, 1-year, and 3-month graphs will all be duplicates. There is probably a more elegant way to handle this (removing the unnecessary ranges, or maybe just always showing the full time range, even when it's mostly empty).
 - More options would be nice. Particularly, setting colors in the options seems really necessary.
 - Because of the way CorePlot works, graphs can't be resized dynamically, which is a problem if you want to animate the resizing. If anyone has a workaround for this, I would be delighted to hear it.
 
@@ -63,4 +63,3 @@ Joseph Constantakis, jcon5294@gmail.com
 ## License
 
 JCStockGraph is available under the MIT license. See the LICENSE file for more info.
-
