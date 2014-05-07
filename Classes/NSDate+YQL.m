@@ -12,13 +12,13 @@
 @implementation NSDate (YQL)
 
 - (NSString *)yqlStartString {
-    return [NSString stringWithFormat:@"a=%lu&b=%lu&c=%lu", [self mt_monthOfYear]-1,
+    return [NSString stringWithFormat:@"a=%lu&b=%lu&c=%lu", (unsigned long)[self mt_monthOfYear]-1,
                                                            (unsigned long)[self mt_dayOfMonth],
                                                            (unsigned long)[self mt_year]];
 }
 
 - (NSString *)yqlEndString {
-    return [NSString stringWithFormat:@"d=%lu&e=%lu&f=%lu", [self mt_monthOfYear]-1,
+    return [NSString stringWithFormat:@"d=%lu&e=%lu&f=%lu", (unsigned long)[self mt_monthOfYear]-1,
                                                            (unsigned long)[self mt_dayOfMonth],
                                                            (unsigned long)[self mt_year]];
 }
