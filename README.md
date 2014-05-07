@@ -26,13 +26,16 @@ For a single graph, use JCStockGraphController. For a page-able scroll view cont
     // or self.graph = [[JCStockGraphController alloc] initWithTicker:@"AAPL"]; for just one page
 
     self.graph.view.frame           = CGRectMake(0, 100, 320, 100);
-    self.graph.graphOffset          = CGPointMake(8, 0);
-    self.graph.graphSize            = CGSizeMake(290, 90);
+    self.graph.graphOffset          = CGPointMake(10, 0);
+    self.graph.graphSize            = CGSizeMake(300, 100);
     self.graph.graphOptions         = kGraphOptionSmoothGraph | kGraphOptionHideXAxis | kGraphOptionHideGrid;
     self.graph.shouldAutoscroll     = YES;
     self.graph.shouldShowRotateHint = NO;
 
     [self.view addSubview:self.graph.view];
+    // If this code all runs AFTER the superview is already loaded, add the line:
+    [self.graph reloadViews];
+    // This is because of an issue (listed below) with Core Plot dynamic resizing
 ```
 
 Note: To enable panning and zooming with the Page controller, what I've done is disable scrolling in the page controller itself, and instead switch between graphs using a UISegmentedControl underneath the graphs. Then you just switch graphs in code using scrollToRange:(JCStockGraphRange)newRange.
@@ -46,11 +49,11 @@ it simply add the following line to your Podfile:
 
     pod "JCStockGraph"
 
-It is worth noting that JCStockGraph has 5 separate dependencies, which many would consider to be a high amount for a fairly small control. At least the last two (MTDates and FontasticIcons) could likely by replaced without much effort, and MBProgressHUD & AFNetworking aren't strictly necessary either. If you do decide to replace any of them with custom code, by all means submit me a pull request!
+It is worth noting that JCStockGraph has 5 separate dependencies, which many would consider to be a high amount for a fairly small control. At least the last two (MTDates and FontasticIcons) could easily by replaced without much effort, and MBProgressHUD & AFNetworking aren't strictly necessary either. If you do decide to replace any of them with custom code, by all means submit me a pull request!
 
 ## Known Issues
 
-- If a stock has only been public for 3 months, for example, the 5-year, 1-year, and 3-month graphs will all be duplicates. There is probably a more elegant way to handle this (removing the unnecessary ranges, or maybe just always showing the full time range, even when it's mostly empty).
+- If a stock has only been public for e.g. 3 months, then the 5-year, 1-year, and 3-month graphs will all be duplicates. There is probably a more elegant way to handle this (removing the unnecessary ranges, or maybe just always showing the full time range, even when it's mostly empty).
 - More options would be nice. Particularly, setting colors in the options seems really necessary.
 - Because of the way CorePlot works, graphs can't be resized dynamically, which is a problem if you want to animate the resizing. If anyone has a workaround for this, I would be delighted to hear it.
 
