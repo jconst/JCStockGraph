@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = "JCStockGraph"
-  s.version          = "0.1.0"
+  s.version          = "1.0.0"
   s.summary          = "A simple graph view controller which displays a stock's historical price data from the Yahoo finance API."
   s.homepage         = "http://github.com/jconst/JCStockGraph"
   s.screenshots      = "https://github.com/jconst/JCStockGraph/raw/master/ss1.png", "https://github.com/jconst/JCStockGraph/raw/master/ss2.png"
