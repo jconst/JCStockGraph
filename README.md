@@ -26,8 +26,8 @@ For a single graph, use JCStockGraphController. For a page-able scroll view cont
     // or self.graph = [[JCStockGraphController alloc] initWithTicker:@"AAPL"]; for just one page
 
     self.graph.view.frame           = CGRectMake(0, 100, 320, 100);
-    self.graph.graphOffset          = CGPointMake(8, 0);
-    self.graph.graphSize            = CGSizeMake(290, 90);
+    self.graph.graphOffset          = CGPointMake(10, 0);
+    self.graph.graphSize            = CGSizeMake(300, 100);
     self.graph.graphOptions         = kGraphOptionSmoothGraph | kGraphOptionHideXAxis | kGraphOptionHideGrid;
     self.graph.shouldAutoscroll     = YES;
     self.graph.shouldShowRotateHint = NO;
