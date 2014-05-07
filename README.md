@@ -34,7 +34,7 @@ For a single graph, use JCStockGraphController. For a page-able scroll view cont
 
     [self.view addSubview:self.graph.view];
     // If this code all runs AFTER the superview is already loaded, add the line:
-    [self.graphPageController reloadViews];
+    [self.graph reloadViews];
     // This is because of an issue (listed below) with Core Plot dynamic resizing
 ```
 
