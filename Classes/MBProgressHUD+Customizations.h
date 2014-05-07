@@ -14,4 +14,6 @@
 @property (weak, nonatomic) UIColor *indicatorBackgroundColor;
 @property (nonatomic) CGSize indicatorSize;
 
+- (UIView *)indicator;
+
 @end
