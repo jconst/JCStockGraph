@@ -5,7 +5,7 @@
 
 JCStockGraph is an easy way to show historical price graphs for any security (that is listed in the Yahoo finance api). Here are some example screenshots of the graphs being used in the [Benzinga Stock Tracker](https://itunes.apple.com/us/app/benzinga-stock-news-tracker/id688949481?mt=8) app:
 
-<img src="ss1.png" width=70%></img>
+<img src="ss1.gif" width=70%></img>
 
 <img src="ss2.gif" width=40%></img>
 
