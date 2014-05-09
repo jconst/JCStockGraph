@@ -1,3 +1,8 @@
+# CocoaPods
+Example/Pods
+Example/Pods/*
+Example/Podfile.lock
+
 # OS X
 .DS_Store
 

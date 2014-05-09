@@ -1,1 +1,0 @@
-../../FontasticIcons/FontasticIcons/Sources/Classes/FIFontAwesomeIcon+Deprecation.h
