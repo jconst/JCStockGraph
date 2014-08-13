@@ -37,99 +37,142 @@ static JCStockPriceStore *sharedInstance;
     return sharedInstance;
 }
 
+- (void)mergePoints:(NSArray *)points todayPoints:(NSArray *)today_points completion:(void (^)(NSArray *points))comp
+{
+    if (!comp) return;
+    
+    NSMutableArray *newArray = [[NSMutableArray alloc] init];
+    [newArray addObjectsFromArray:points];
+    JCPriceDataPoint *point = [newArray lastObject];
+    JCPriceDataPoint *tPoint = [today_points objectAtIndex:0];
+    if ([point.date isEqual:tPoint.date]==NO)
+        [newArray addObjectsFromArray:today_points];
+    comp(newArray);
+    
+}
+
+- (void)getTodayStockPrice:(NSString *)ticker longPoints:(NSArray *)points completion:(void (^)(NSArray *points))comp
+{
+    // Request current price..
+    // http://download.finance.yahoo.com/d/quotes.csv?s=AAPL&f=d1o0h0g0l1v0l1
+    NSString *urlString = [NSString stringWithFormat:@"http://download.finance.yahoo.com/d/quotes.csv?s=%@&f=d1o0h0g0l1v0l1", ticker];
+    
+    // escape for ^IXIC, ^INX
+    NSURL *url = [NSURL URLWithString:[urlString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    AFHTTPRequestOperation *operation2 = [[AFHTTPRequestOperation alloc] initWithRequest:[NSURLRequest requestWithURL:url]];
+    [operation2 setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject)
+     {
+         NSMutableArray *today_points = [[NSMutableArray alloc] init];
+         
+         NSString *csvString = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
+         
+         // reformat the date string
+         NSMutableString *csvString_tmp = [csvString mutableCopy];
+         NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern: @"\"([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})\"" options:0 error:nil];
+         [regex replaceMatchesInString:csvString_tmp options:0 range:NSMakeRange(0, [csvString_tmp length]) withTemplate:@"$3-$1-$2"];
+         regex = [NSRegularExpression regularExpressionWithPattern: @"-([0-9]{1})-" options:0 error:nil];
+         [regex replaceMatchesInString:csvString_tmp options:0 range:NSMakeRange(0, [csvString_tmp length]) withTemplate:@"-0$1-"];
+         regex = [NSRegularExpression regularExpressionWithPattern: @"-([0-9]{1})$" options:0 error:nil];
+         [regex replaceMatchesInString:csvString_tmp options:0 range:NSMakeRange(0, [csvString_tmp length]) withTemplate:@"-0$1"];
+         csvString = [NSString stringWithFormat:@"FIRST_LINE_FOR_SKIPED\n%@", csvString_tmp];
+         
+         
+         NSArray *newPoints  = [self dataPointsForCSVString:csvString];
+         [today_points addObjectsFromArray:newPoints];
+         
+         [self cachePoints:points  todayPoints:today_points forTicker:ticker];
+         [self mergePoints:points todayPoints:today_points completion:comp];
+         
+     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+         NSLog(@"CSV request failure: %@", error);
+     }];
+    [operation2 start];
+}
+
 - (BOOL)getDataForTicker:(NSString *)ticker withProgress:(void (^)(double progress))progBlock completion:(void (^)(NSArray *points))comp
 {
     NSAssert(ticker, @"tried to get historical data for null ticker");
     if (!ticker && comp) comp(nil);
     
     __block NSMutableArray *points = [[NSMutableArray alloc] init];
+    __block NSMutableArray *today_points = [[NSMutableArray alloc] init];
     
     //Set time period:
     NSDate *endDate = [NSDate date];
     NSDate *startDate = [endDate mt_dateYearsBefore:5];
     
     //Check for previously cached data:
+    BOOL needUpdateLong = NO;
+    BOOL needUpdateTotday = NO;
     NSDictionary *cacheDict = [self loadCacheForTicker:ticker];
-    if (cacheDict) {
+    if (cacheDict)
+    {
         //Found a cache; load it into our points array
-        [points addObjectsFromArray:cacheDict[@"data"]];
+        [points addObjectsFromArray:cacheDict[@"data"]]; // long term data...
         NSDate *cacheDate = cacheDict[@"cacheDate"];
-        if ([cacheDate mt_isWithinSameDay:endDate]) {
-            if (comp) comp(points);
-            return YES;
-        } else {
+        if ([cacheDate mt_isWithinSameDay:endDate]==NO)
+        {
             startDate = cacheDate;
+            needUpdateTotday = YES;
+            needUpdateLong = YES;
+        } else {
+            // check short term data..
+            [today_points addObjectsFromArray:cacheDict[@"today_data"]];
+            cacheDate = cacheDict[@"cacheTodayDate"];
+            if (
+                [cacheDate mt_isWithinSameHour:endDate]==NO
+                || [today_points count]>1
+                )
+            {
+                needUpdateTotday = YES;
+            }
         }
+    } else {
+        needUpdateLong = YES;
+        needUpdateTotday = YES;
     }
     
-    //Build URL:
-    NSString *urlString = [NSString stringWithFormat:@"http://ichart.finance.yahoo.com/table.csv?s=%@&%@&%@", ticker, [startDate yqlStartString], [endDate yqlEndString]];
-    NSURL *url = [NSURL URLWithString:urlString];
-    
-    //Create Request:
-    AFHTTPRequestOperation *operation    = [[AFHTTPRequestOperation alloc] initWithRequest:[NSURLRequest requestWithURL:url]];
-    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject)
+    if (needUpdateLong)
     {
-        NSString *csvString = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
+        //Build URL:
+        NSString *urlString = [NSString stringWithFormat:@"http://ichart.finance.yahoo.com/table.csv?s=%@&%@&%@", ticker, [startDate yqlStartString], [endDate yqlEndString]];
+        // escape characters, ex. ^IXIC, ^INX
+        NSURL *url = [NSURL URLWithString:[urlString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
         
-        // Request current price..
-        // http://download.finance.yahoo.com/d/quotes.csv?s=AAPL&f=d1o0h0g0l1v0l1
-        NSString *urlString = [NSString stringWithFormat:@"http://download.finance.yahoo.com/d/quotes.csv?s=%@&f=d1o0h0g0l1v0l1", ticker];
-        NSURL *url = [NSURL URLWithString:urlString];
-        AFHTTPRequestOperation *operation2 = [[AFHTTPRequestOperation alloc] initWithRequest:[NSURLRequest requestWithURL:url]];
-        NSMutableDictionary *passInfo = [[NSMutableDictionary alloc] init];
-        [passInfo setValue:csvString forKey:@"oldString"];
-        [operation2 setUserInfo:[passInfo copy]];
+        //Create Request:
+        AFHTTPRequestOperation *operation    = [[AFHTTPRequestOperation alloc] initWithRequest:[NSURLRequest requestWithURL:url]];
+        [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject)
+         {
+             NSString *csvString = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
+             NSArray *newPoints  = [self dataPointsForCSVString:csvString];
+             [points addObjectsFromArray:newPoints];
+             
+    
+             [self getTodayStockPrice:ticker longPoints:points completion:comp];
+             
+         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+             if (comp) comp(nil);
+             NSLog(@"CSV request failure: %@", error);
+         }];
         
-        [operation2 setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject)
-        {
-            
-            NSString *csvString = [[operation userInfo] objectForKey:@"oldString"];
-            NSString *todayString = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
-            
-            // reformat the date string
-            NSMutableString *todayString2 = [todayString mutableCopy];
-            NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern: @"\"([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})\"" options:0 error:nil];
-            [regex replaceMatchesInString:todayString2 options:0 range:NSMakeRange(0, [todayString2 length]) withTemplate:@"$3-$1-$2"];
-            regex = [NSRegularExpression regularExpressionWithPattern: @"-([0-9]{1})-" options:0 error:nil];
-            [regex replaceMatchesInString:todayString2 options:0 range:NSMakeRange(0, [todayString2 length]) withTemplate:@"-0$1-"];
-            regex = [NSRegularExpression regularExpressionWithPattern: @"-([0-9]{1})$" options:0 error:nil];
-            [regex replaceMatchesInString:todayString2 options:0 range:NSMakeRange(0, [todayString2 length]) withTemplate:@"-0$1"];
-            todayString = [todayString2 copy];
-
-            
-            csvString=[csvString stringByAppendingString:todayString];
-            
-            NSArray *newPoints  = [self dataPointsForCSVString:csvString];
-            [points addObjectsFromArray:newPoints];
-            
-            if (comp) comp(points);
-            
-            [self cachePoints:points forTicker:ticker];
-            
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            if (comp) comp(nil);
-            NSLog(@"CSV request failure: %@", error);
+        // Dowload Progress
+        [operation setDownloadProgressBlock:^(NSUInteger bytesRead, long long totalBytesRead, long long totalBytesExpectedToRead) {
+            long long expected = totalBytesExpectedToRead;
+            if (expected == -1)
+                expected = 75000;   //A bit more than average
+            double prog = MIN((double)totalBytesRead/(double)expected, 1.0);
+            if (progBlock) progBlock(prog);
         }];
-        [operation2 start];
         
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        if (comp) comp(nil);
-        NSLog(@"CSV request failure: %@", error);
-    }];
-    
-    // Dowload Progress
-    [operation setDownloadProgressBlock:^(NSUInteger bytesRead, long long totalBytesRead, long long totalBytesExpectedToRead) {
-        long long expected = totalBytesExpectedToRead;
-        if (expected == -1)
-            expected = 75000;   //A bit more than average
-        double prog = MIN((double)totalBytesRead/(double)expected, 1.0);
-        if (progBlock) progBlock(prog);
-    }];
-    
-    [operation start];
-    
+        [operation start];
 
+    }
+    else if (needUpdateTotday)
+    {
+        [self getTodayStockPrice:ticker longPoints:points completion:comp];
+    } else {
+        [self mergePoints:points todayPoints:today_points completion:comp];
+    }
     
     return NO;
 }
@@ -198,9 +241,9 @@ static JCStockPriceStore *sharedInstance;
     return ret;
 }
 
-- (BOOL)cachePoints:(NSArray *)points forTicker:(NSString *)ticker
+- (BOOL)cachePoints:(NSArray *)points todayPoints:(NSArray *)today_points forTicker:(NSString *)ticker
 {
-    NSDictionary *cacheDict = @{@"cacheDate": [NSDate date], @"data": points};
+    NSDictionary *cacheDict = @{@"cacheDate": [NSDate date], @"data": points, @"cacheTodayDate": [NSDate date], @"today_data": today_points};
     inMemCache[ticker] = cacheDict;
     
     if (self.diskCachingEnabled) {
@@ -221,8 +264,8 @@ static JCStockPriceStore *sharedInstance;
 {
     self = [super init];
     if (self) {
-        self.memoryCachingEnabled = NO;
-        self.diskCachingEnabled = NO;
+        self.memoryCachingEnabled = YES;
+        self.diskCachingEnabled = YES;
         inMemCache = [[NSMutableDictionary alloc] init];
     }
     return self;
