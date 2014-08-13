@@ -69,9 +69,9 @@ static JCStockPriceStore *sharedInstance;
     
     //Create Request:
     AFHTTPRequestOperation *operation    = [[AFHTTPRequestOperation alloc] initWithRequest:[NSURLRequest requestWithURL:url]];
-    AFHTTPResponseSerializer *serializer = [AFHTTPResponseSerializer serializer];
+    /* AFHTTPResponseSerializer *serializer = [AFHTTPResponseSerializer serializer];
     serializer.acceptableContentTypes    = [serializer.acceptableContentTypes setByAddingObject:@"text/csv"];
-    operation.responseSerializer         = serializer;
+    operation.responseSerializer         = serializer;*/
     [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         
         NSString *csvString = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
