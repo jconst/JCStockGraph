@@ -115,6 +115,7 @@
     priceFormatter.numberStyle              = kCFNumberFormatterCurrencyStyle;
     priceFormatter.maximumSignificantDigits = 3;
     priceFormatter.usesSignificantDigits    = YES;
+    priceFormatter.currencySymbol = @"$";
     
     CPTXYAxis *y         = axisSet.yAxis;
     y.axisConstraints    = [CPTConstraints constraintWithLowerOffset:0];

@@ -10,11 +10,11 @@
 #import "CorePlot-CocoaTouch.h"
 
 typedef enum {
-    kGraphRange5Year = 0,
-    kGraphRange1Year,
-    kGraphRange3Month,
+    kGraphRange1Week = 0,
     kGraphRange1Month,
-    kGraphRange1Week,
+    kGraphRange3Month,
+    kGraphRange1Year,
+    kGraphRange5Year,
     kGraphRangeCount
 } JCStockGraphRange;
 
