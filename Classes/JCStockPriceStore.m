@@ -40,13 +40,17 @@ static JCStockPriceStore *sharedInstance;
 - (void)mergePoints:(NSArray *)points todayPoints:(NSArray *)today_points completion:(void (^)(NSArray *points))comp
 {
     if (!comp) return;
+    if (!points) return;
     
     NSMutableArray *newArray = [[NSMutableArray alloc] init];
     [newArray addObjectsFromArray:points];
     JCPriceDataPoint *point = [newArray lastObject];
-    JCPriceDataPoint *tPoint = [today_points objectAtIndex:0];
-    if ([point.date isEqual:tPoint.date]==NO)
-        [newArray addObjectsFromArray:today_points];
+    if (today_points && [today_points count]>0)
+    {
+        JCPriceDataPoint *tPoint = [today_points objectAtIndex:0];
+        if ([point.date isEqual:tPoint.date]==NO)
+            [newArray addObjectsFromArray:today_points];
+    }
     comp(newArray);
     
 }
@@ -86,6 +90,7 @@ static JCStockPriceStore *sharedInstance;
          [self mergePoints:points todayPoints:today_points completion:comp];
          
      } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+         [self mergePoints:points todayPoints:nil completion:comp];
          NSLog(@"CSV request failure: %@", error);
      }];
 
@@ -164,7 +169,8 @@ static JCStockPriceStore *sharedInstance;
              [self getTodayStockPrice:ticker longPoints:points withProgress:progBlock completion:comp];
              
          } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-             if (comp) comp(nil);
+             // still try today stock price...
+             [self getTodayStockPrice:ticker longPoints:points withProgress:progBlock completion:comp];
              NSLog(@"CSV request failure: %@", error);
          }];
         
