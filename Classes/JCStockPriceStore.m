@@ -51,7 +51,7 @@ static JCStockPriceStore *sharedInstance;
     
 }
 
-- (void)getTodayStockPrice:(NSString *)ticker longPoints:(NSArray *)points completion:(void (^)(NSArray *points))comp
+- (void)getTodayStockPrice:(NSString *)ticker longPoints:(NSArray *)points withProgress:(void (^)(double progress))progBlock completion:(void (^)(NSArray *points))comp
 {
     // Request current price..
     // http://download.finance.yahoo.com/d/quotes.csv?s=AAPL&f=d1o0h0g0l1v0l1
@@ -86,6 +86,15 @@ static JCStockPriceStore *sharedInstance;
      } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
          NSLog(@"CSV request failure: %@", error);
      }];
+    
+    // Dowload Progress
+    [operation2 setDownloadProgressBlock:^(NSUInteger bytesRead, long long totalBytesRead, long long totalBytesExpectedToRead) {
+        long long expected = totalBytesExpectedToRead;
+        if (expected == -1)
+            expected = 75000;   //A bit more than average
+        double prog = MIN((double)totalBytesRead/(double)expected, 1.0);
+        if (progBlock) progBlock(prog);
+    }];
     [operation2 start];
 }
 
@@ -148,7 +157,7 @@ static JCStockPriceStore *sharedInstance;
              [points addObjectsFromArray:newPoints];
              
     
-             [self getTodayStockPrice:ticker longPoints:points completion:comp];
+             [self getTodayStockPrice:ticker longPoints:points withProgress:progBlock completion:comp];
              
          } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
              if (comp) comp(nil);
@@ -169,7 +178,7 @@ static JCStockPriceStore *sharedInstance;
     }
     else if (needUpdateTotday)
     {
-        [self getTodayStockPrice:ticker longPoints:points completion:comp];
+        [self getTodayStockPrice:ticker longPoints:points withProgress:progBlock completion:comp];
     } else {
         [self mergePoints:points todayPoints:today_points completion:comp];
     }
