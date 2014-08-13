@@ -51,6 +51,7 @@ static JCStockPriceStore *sharedInstance;
     
 }
 
+
 - (void)getTodayStockPrice:(NSString *)ticker longPoints:(NSArray *)points withProgress:(void (^)(double progress))progBlock completion:(void (^)(NSArray *points))comp
 {
     // Request current price..
@@ -80,13 +81,14 @@ static JCStockPriceStore *sharedInstance;
          NSArray *newPoints  = [self dataPointsForCSVString:csvString];
          [today_points addObjectsFromArray:newPoints];
          
+
          [self cachePoints:points  todayPoints:today_points forTicker:ticker];
          [self mergePoints:points todayPoints:today_points completion:comp];
          
      } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
          NSLog(@"CSV request failure: %@", error);
      }];
-    
+
     // Dowload Progress
     [operation2 setDownloadProgressBlock:^(NSUInteger bytesRead, long long totalBytesRead, long long totalBytesExpectedToRead) {
         long long expected = totalBytesExpectedToRead;
@@ -95,6 +97,7 @@ static JCStockPriceStore *sharedInstance;
         double prog = MIN((double)totalBytesRead/(double)expected, 1.0);
         if (progBlock) progBlock(prog);
     }];
+
     [operation2 start];
 }
 
@@ -132,6 +135,7 @@ static JCStockPriceStore *sharedInstance;
                 [cacheDate mt_isWithinSameHour:endDate]==NO
                 || [today_points count]>1
                 )
+
             {
                 needUpdateTotday = YES;
             }
@@ -179,6 +183,7 @@ static JCStockPriceStore *sharedInstance;
     else if (needUpdateTotday)
     {
         [self getTodayStockPrice:ticker longPoints:points withProgress:progBlock completion:comp];
+
     } else {
         [self mergePoints:points todayPoints:today_points completion:comp];
     }
@@ -253,6 +258,18 @@ static JCStockPriceStore *sharedInstance;
 - (BOOL)cachePoints:(NSArray *)points todayPoints:(NSArray *)today_points forTicker:(NSString *)ticker
 {
     NSDictionary *cacheDict = @{@"cacheDate": [NSDate date], @"data": points, @"cacheTodayDate": [NSDate date], @"today_data": today_points};
+    inMemCache[ticker] = cacheDict;
+    
+    if (self.diskCachingEnabled) {
+        NSString *cachePath = [self cachePathForTicker:ticker];
+        return [NSKeyedArchiver archiveRootObject:cacheDict toFile:cachePath];
+    }
+    return NO;
+}
+
+- (BOOL)cacheTodayPoints:(NSArray *)points forTicker:(NSString *)ticker
+{
+    NSDictionary *cacheDict = @{@"cacheTodayDate": [NSDate date], @"today_data": points};
     inMemCache[ticker] = cacheDict;
     
     if (self.diskCachingEnabled) {
