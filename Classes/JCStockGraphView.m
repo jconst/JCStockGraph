@@ -195,7 +195,7 @@
     rangeLabel.backgroundColor  = [UIColor colorWithWhite:0.0 alpha:0.4];
     [rangeLabel sizeToFit];
     rangeLabel.width            += 8;
-    rangeLabel.y                = self.height - rangeLabel.height;
+    rangeLabel.y                = self.height; // - rangeLabel.height;
     rangeLabel.right            = self.right;
     rangeLabel.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleLeftMargin;
     [self addSubview:rangeLabel];

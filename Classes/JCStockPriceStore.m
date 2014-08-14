@@ -56,7 +56,7 @@ static JCStockPriceStore *sharedInstance;
 }
 
 
-- (void)getTodayStockPrice:(NSString *)ticker longPoints:(NSArray *)points withProgress:(void (^)(double progress))progBlock completion:(void (^)(NSArray *points))comp
+- (void)getTodayStockPrice:(NSString *)ticker longPoints:(NSArray *)points todayPoints:(NSArray *)today_points withProgress:(void (^)(double progress))progBlock completion:(void (^)(NSArray *points))comp
 {
     // Request current price..
     // http://download.finance.yahoo.com/d/quotes.csv?s=AAPL&f=d1o0h0g0l1v0l1
@@ -90,7 +90,7 @@ static JCStockPriceStore *sharedInstance;
          [self mergePoints:points todayPoints:today_points completion:comp];
          
      } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-         [self mergePoints:points todayPoints:nil completion:comp];
+         [self mergePoints:points todayPoints:today_points completion:comp];
          NSLog(@"CSV request failure: %@", error);
      }];
 
@@ -166,11 +166,11 @@ static JCStockPriceStore *sharedInstance;
              [points addObjectsFromArray:newPoints];
              
     
-             [self getTodayStockPrice:ticker longPoints:points withProgress:progBlock completion:comp];
+             [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
              
          } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
              // still try today stock price...
-             [self getTodayStockPrice:ticker longPoints:points withProgress:progBlock completion:comp];
+             [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
              NSLog(@"CSV request failure: %@", error);
          }];
         
@@ -188,7 +188,7 @@ static JCStockPriceStore *sharedInstance;
     }
     else if (needUpdateTotday)
     {
-        [self getTodayStockPrice:ticker longPoints:points withProgress:progBlock completion:comp];
+        [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
 
     } else {
         [self mergePoints:points todayPoints:today_points completion:comp];
