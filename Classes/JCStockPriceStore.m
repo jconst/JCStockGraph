@@ -127,7 +127,10 @@ static JCStockPriceStore *sharedInstance;
         //Found a cache; load it into our points array
         [points addObjectsFromArray:cacheDict[@"data"]]; // long term data...
         NSDate *cacheDate = cacheDict[@"cacheDate"];
-        if ([cacheDate mt_isWithinSameDay:endDate]==NO)
+        if ([cacheDate mt_isWithinSameDay:endDate]==NO
+            || [points count]<50
+            || [points count]>5000
+            )
         {
             startDate = cacheDate;
             needUpdateTotday = YES;
@@ -138,6 +141,7 @@ static JCStockPriceStore *sharedInstance;
             cacheDate = cacheDict[@"cacheTodayDate"];
             if (
                 [cacheDate mt_isWithinSameHour:endDate]==NO
+                || [cacheDate mt_isWithinSameDay:endDate]==NO
                 || [today_points count]>1
                 )
 
@@ -149,6 +153,7 @@ static JCStockPriceStore *sharedInstance;
         needUpdateLong = YES;
         needUpdateTotday = YES;
     }
+    
     
     if (needUpdateLong)
     {
@@ -163,6 +168,7 @@ static JCStockPriceStore *sharedInstance;
          {
              NSString *csvString = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
              NSArray *newPoints  = [self dataPointsForCSVString:csvString];
+             [points removeAllObjects];
              [points addObjectsFromArray:newPoints];
              
     
