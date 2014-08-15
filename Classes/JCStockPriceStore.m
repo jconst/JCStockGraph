@@ -128,11 +128,10 @@ static JCStockPriceStore *sharedInstance;
         [points addObjectsFromArray:cacheDict[@"data"]]; // long term data...
         NSDate *cacheDate = cacheDict[@"cacheDate"];
         if ([cacheDate mt_isWithinSameDay:endDate]==NO
-            || [points count]<50
-            || [points count]>5000
+            || [points  count]<50 // abnormal case..
             )
         {
-            startDate = cacheDate;
+//            startDate = cacheDate;
             needUpdateTotday = YES;
             needUpdateLong = YES;
         } else {
@@ -159,6 +158,7 @@ static JCStockPriceStore *sharedInstance;
     {
         //Build URL:
         NSString *urlString = [NSString stringWithFormat:@"http://ichart.finance.yahoo.com/table.csv?s=%@&%@&%@", ticker, [startDate yqlStartString], [endDate yqlEndString]];
+        
         // escape characters, ex. ^IXIC, ^INX
         NSURL *url = [NSURL URLWithString:[urlString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
         
