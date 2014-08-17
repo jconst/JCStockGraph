@@ -84,6 +84,7 @@
 {
     // 0 - increase padding to make room for axis labels
     self.hostView.hostedGraph.plotAreaFrame.paddingBottom = 24;
+    self.hostView.hostedGraph.plotAreaFrame.paddingRight = 12;
     
 	// 1 - Get axis set
 	CPTXYAxisSet *axisSet = (CPTXYAxisSet *) self.hostView.hostedGraph.axisSet;
