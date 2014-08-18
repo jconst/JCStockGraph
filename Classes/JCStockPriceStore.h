@@ -13,7 +13,7 @@
 + (JCStockPriceStore *)sharedInstance;
 
 ///@return YES if we loaded data from the cache/memory, NO if we made a request for the data
-- (BOOL)getDataForTicker:(NSString *)ticker withProgress:(void (^)(double progress))progBlock completion:(void (^)(NSArray *points))block;
+- (BOOL)getDataForTicker:(NSString *)ticker parentPage:(id)qParent withProgress:(void (^)(double progress))progBlock completion:(void (^)(NSArray *points))block;
 
 @property (nonatomic) BOOL diskCachingEnabled;
 @property (nonatomic) BOOL memoryCachingEnabled;

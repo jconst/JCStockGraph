@@ -38,11 +38,12 @@ typedef NSInteger JCStockGraphOptionMask;
 @property (nonatomic) JCStockGraphRange range;
 @property (nonatomic) CGPoint graphOffset;
 @property (nonatomic) CGSize graphSize;
+@property (nonatomic) id parentPage;
 
 @property (strong, nonatomic) NSString *ticker;
 @property (strong, nonatomic) JCStockGraphView *graphView;
 
-- (id)initWithTicker:(NSString *)ticker;
+- (id)initWithTicker:(NSString *)ticker parent:(id)qParent;
 - (void)loadDataWithCompletion:(void (^)())completion;
 - (void)reloadGraph;
 

@@ -83,8 +83,9 @@
 - (void)configureXAxisWithPoints:(NSArray *)points delegate:(id<CPTAxisDelegate>)delegate
 {
     // 0 - increase padding to make room for axis labels
-    self.hostView.hostedGraph.plotAreaFrame.paddingBottom = 24;
-    self.hostView.hostedGraph.plotAreaFrame.paddingRight = 12;
+    self.hostView.hostedGraph.plotAreaFrame.paddingBottom = 20;
+    self.hostView.hostedGraph.plotAreaFrame.paddingRight = 20;
+    self.hostView.hostedGraph.plotAreaFrame.paddingTop = 6;
     
 	// 1 - Get axis set
 	CPTXYAxisSet *axisSet = (CPTXYAxisSet *) self.hostView.hostedGraph.axisSet;

@@ -106,100 +106,95 @@ static JCStockPriceStore *sharedInstance;
     [operation2 start];
 }
 
-- (BOOL)getDataForTicker:(NSString *)ticker withProgress:(void (^)(double progress))progBlock completion:(void (^)(NSArray *points))comp
+- (BOOL)getDataForTicker:(NSString *)ticker parentPage:(id)qParent withProgress:(void (^)(double progress))progBlock completion:(void (^)(NSArray *points))comp
 {
-    NSAssert(ticker, @"tried to get historical data for null ticker");
-    if (!ticker && comp) comp(nil);
-    
-    __block NSMutableArray *points = [[NSMutableArray alloc] init];
-    __block NSMutableArray *today_points = [[NSMutableArray alloc] init];
-    
-    //Set time period:
-    NSDate *endDate = [NSDate date];
-    NSDate *startDate = [endDate mt_dateYearsBefore:5];
-    
-    //Check for previously cached data:
-    BOOL needUpdateLong = NO;
-    BOOL needUpdateTotday = NO;
-    NSDictionary *cacheDict = [self loadCacheForTicker:ticker];
-    if (cacheDict)
+    @synchronized (qParent)
     {
-        //Found a cache; load it into our points array
-        [points addObjectsFromArray:cacheDict[@"data"]]; // long term data...
-        NSDate *cacheDate = cacheDict[@"cacheDate"];
-        if ([cacheDate mt_isWithinSameDay:endDate]==NO
-            || [points  count]<50 // abnormal case..
-            )
-        {
+        NSAssert(ticker, @"tried to get historical data for null ticker");
+        if (!ticker && comp) comp(nil);
+
+        __block NSMutableArray *points = [[NSMutableArray alloc] init];
+        __block NSMutableArray *today_points = [[NSMutableArray alloc] init];
+
+        //Set time period:
+        NSDate *endDate = [NSDate date];
+        NSDate *startDate = [endDate mt_dateYearsBefore:5];
+
+        //Check for previously cached data:
+        BOOL needUpdateLong = NO;
+        BOOL needUpdateTotday = NO;
+        NSDictionary *cacheDict = [self loadCacheForTicker:ticker];
+        if (cacheDict) {
+            //Found a cache; load it into our points array
+            [points addObjectsFromArray:cacheDict[@"data"]]; // long term data...
+            NSDate *cacheDate = cacheDict[@"cacheDate"];
+            if (![cacheDate mt_isWithinSameDay:endDate]
+                    || [points count] < 50 // abnormal case..
+                    ) {
 //            startDate = cacheDate;
-            needUpdateTotday = YES;
-            needUpdateLong = YES;
-        } else {
-            // check short term data..
-            [today_points addObjectsFromArray:cacheDict[@"today_data"]];
-            cacheDate = cacheDict[@"cacheTodayDate"];
-            if (
-                [cacheDate mt_isWithinSameHour:endDate]==NO
-                || [cacheDate mt_isWithinSameDay:endDate]==NO
-                || [today_points count]>1
-                )
-
-            {
                 needUpdateTotday = YES;
+                needUpdateLong = YES;
+            } else {
+                // check short term data..
+                [today_points addObjectsFromArray:cacheDict[@"today_data"]];
+                cacheDate = cacheDict[@"cacheTodayDate"];
+                if (
+                        ![cacheDate mt_isWithinSameHour:endDate]
+                                || ![cacheDate mt_isWithinSameDay:endDate]
+                                || [today_points count] > 1
+                        ) {
+                    needUpdateTotday = YES;
+                }
             }
+        } else {
+            needUpdateLong = YES;
+            needUpdateTotday = YES;
         }
-    } else {
-        needUpdateLong = YES;
-        needUpdateTotday = YES;
-    }
-    
-    
-    if (needUpdateLong)
-    {
-        //Build URL:
-        NSString *urlString = [NSString stringWithFormat:@"http://ichart.finance.yahoo.com/table.csv?s=%@&%@&%@", ticker, [startDate yqlStartString], [endDate yqlEndString]];
-        
-        // escape characters, ex. ^IXIC, ^INX
-        NSURL *url = [NSURL URLWithString:[urlString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-        
-        //Create Request:
-        AFHTTPRequestOperation *operation    = [[AFHTTPRequestOperation alloc] initWithRequest:[NSURLRequest requestWithURL:url]];
-        [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject)
-         {
-             NSString *csvString = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
-             NSArray *newPoints  = [self dataPointsForCSVString:csvString];
-             [points removeAllObjects];
-             [points addObjectsFromArray:newPoints];
-             
-    
-             [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
-             
-         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-             // still try today stock price...
-             [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
-             NSLog(@"CSV request failure: %@", error);
-         }];
-        
-        // Dowload Progress
-        [operation setDownloadProgressBlock:^(NSUInteger bytesRead, long long totalBytesRead, long long totalBytesExpectedToRead) {
-            long long expected = totalBytesExpectedToRead;
-            if (expected == -1)
-                expected = 75000;   //A bit more than average
-            double prog = MIN((double)totalBytesRead/(double)expected, 1.0);
-            if (progBlock) progBlock(prog);
-        }];
-        
-        [operation start];
 
-    }
-    else if (needUpdateTotday)
-    {
-        [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
 
-    } else {
-        [self mergePoints:points todayPoints:today_points completion:comp];
+        if (needUpdateLong) {
+            //Build URL:
+            NSString *urlString = [NSString stringWithFormat:@"http://ichart.finance.yahoo.com/table.csv?s=%@&%@&%@", ticker, [startDate yqlStartString], [endDate yqlEndString]];
+
+            // escape characters, ex. ^IXIC, ^INX
+            NSURL *url = [NSURL URLWithString:[urlString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+
+            //Create Request:
+            AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:[NSURLRequest requestWithURL:url]];
+            [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+                NSString *csvString = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
+                NSArray *newPoints = [self dataPointsForCSVString:csvString];
+                [points removeAllObjects];
+                [points addObjectsFromArray:newPoints];
+
+
+                [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
+
+            }                                failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                // still try today stock price...
+                [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
+                NSLog(@"CSV request failure: %@", error);
+            }];
+
+            // Dowload Progress
+            [operation setDownloadProgressBlock:^(NSUInteger bytesRead, long long totalBytesRead, long long totalBytesExpectedToRead) {
+                long long expected = totalBytesExpectedToRead;
+                if (expected == -1)
+                    expected = 75000;   //A bit more than average
+                double prog = MIN((double) totalBytesRead / (double) expected, 1.0);
+                if (progBlock) progBlock(prog);
+            }];
+
+            [operation start];
+
+        }
+        else if (needUpdateTotday) {
+            [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
+
+        } else {
+            [self mergePoints:points todayPoints:today_points completion:comp];
+        }
     }
-    
     return NO;
 }
 
@@ -279,7 +274,7 @@ static JCStockPriceStore *sharedInstance;
     return NO;
 }
 
-- (BOOL)cacheTodayPoints:(NSArray *)points forTicker:(NSString *)ticker
+/*- (BOOL)cacheTodayPoints:(NSArray *)points forTicker:(NSString *)ticker
 {
     NSDictionary *cacheDict = @{@"cacheTodayDate": [NSDate date], @"today_data": points};
     inMemCache[ticker] = cacheDict;
@@ -289,7 +284,7 @@ static JCStockPriceStore *sharedInstance;
         return [NSKeyedArchiver archiveRootObject:cacheDict toFile:cachePath];
     }
     return NO;
-}
+} */
 
 - (void)setMemoryCachingEnabled:(BOOL)inMemoryCachingEnabled
 {

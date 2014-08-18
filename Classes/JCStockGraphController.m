@@ -21,14 +21,14 @@
     NSArray *points;
     BOOL loaded;
     BOOL hasSetSize;
-    UITapGestureRecognizer *tapRecognizer;
+//    UITapGestureRecognizer *tapRecognizer;
 }
 @end
 
 
 @implementation JCStockGraphController
 
-- (id)initWithTicker:(NSString *)ticker
+- (id)initWithTicker:(NSString *)ticker parent:(id)qParent
 {
     self = [super init];
     if (self) {
@@ -37,6 +37,7 @@
         self.range        = kGraphRange5Year;
         self.graphOffset  = CGPointZero;
         self.graphSize    = CGSizeZero;
+        self.parentPage = qParent;
     }
     return self;
 }
@@ -71,7 +72,7 @@
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 
-        [[JCStockPriceStore sharedInstance] getDataForTicker:self.ticker withProgress:^(double progress) {
+        [[JCStockPriceStore sharedInstance] getDataForTicker:self.ticker parentPage:self.parentPage withProgress:^(double progress) {
              hud.progress = progress;
             
         } completion:^(NSArray *newPoints) {
@@ -105,7 +106,7 @@
     (self.graphOptions & kGraphOptionHideYAxis) ? [self.graphView hideYAxis] : [self.graphView configureYAxisWithPoints:points];
     if (!(self.graphOptions & kGraphOptionHideGrid)) [self.graphView configureGridLines];
     if (!(self.graphOptions & kGraphOptionHideRangeLabel)) [self.graphView addRangeLabel];
-    self.graphView.userInteractionEnabled = (self.graphOptions & kGraphOptionInteractive);
+    self.graphView.userInteractionEnabled = (BOOL) (self.graphOptions & kGraphOptionInteractive);
     
     [self.view addSubview:self.graphView];
 }
