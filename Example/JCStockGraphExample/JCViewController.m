@@ -32,6 +32,17 @@
     self.graphPageController.shouldShowRotateHint = NO;
     
     [self.view addSubview:self.graphPageController.view];
+    
+    // draw the same graph with axis and grid.
+    self.graphPageController = [[JCStockGraphPageController alloc] initWithTicker:@"AAPL"];
+    self.graphPageController.view.frame           = CGRectMake(0, 250, 320, 100);
+    self.graphPageController.graphOffset          = CGPointMake(8, 0);
+    self.graphPageController.graphSize            = CGSizeMake(290, 90);
+    self.graphPageController.graphOptions         = kGraphOptionSmoothGraph /*| kGraphOptionHideXAxis | kGraphOptionHideGrid*/;
+    self.graphPageController.shouldAutoscroll     = YES;
+    self.graphPageController.shouldShowRotateHint = NO;
+    
+    [self.view addSubview:self.graphPageController.view];
 }
 
 @end
