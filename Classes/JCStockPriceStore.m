@@ -73,6 +73,12 @@ static JCStockPriceStore *sharedInstance;
         
         // reformat the date string
         NSMutableString *csvString_tmp =[csvString mutableCopy];
+        if ([csvString_tmp hasPrefix:@"Missing Symbols List"]) // 找不到代號的情形..
+        {
+            [self mergePoints:points todayPoints:today_points completion:comp];
+            return;
+        }
+        
         NSRegularExpression *regex =[NSRegularExpression regularExpressionWithPattern: @"\"([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})\"" options:0 error:nil];
         [regex replaceMatchesInString:csvString_tmp options:0 range:NSMakeRange(0,[csvString_tmp length]) withTemplate:@"$3-$1-$2"];
         regex =[NSRegularExpression regularExpressionWithPattern: @"-([0-9]{1})-" options:0 error:nil];
@@ -218,8 +224,8 @@ static JCStockPriceStore *sharedInstance;
     data =[data sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
     
     NSDate *lastDate=nil;
-    for (NSString *rowString in data) {
-        
+    for (NSString *rowString in data)
+    {
         NSArray *row            =[rowString componentsSeparatedByString:@","];
         
         JCPriceDataPoint *point =[[JCPriceDataPoint alloc] init];
