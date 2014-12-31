@@ -6,6 +6,9 @@
 //  Copyright (c) 2013 Benzinga. All rights reserved.
 //
 
+#ifndef MBProgressHUD_Customizations_h
+#define MBProgressHUD_Customizations_h
+
 #import "MBProgressHUD.h"
 
 @interface MBProgressHUD (Cusomizations)
@@ -17,3 +20,5 @@
 - (UIView *)indicator;
 
 @end
+
+#endif
