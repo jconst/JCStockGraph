@@ -47,4 +47,6 @@ typedef NSInteger JCStockGraphOptionMask;
 - (void)loadDataWithCompletion:(void (^)())completion;
 - (void)reloadGraph;
 
+- (void)releaseGraph;
+
 @end

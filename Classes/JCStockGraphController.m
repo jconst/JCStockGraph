@@ -118,6 +118,12 @@
     [self.graphView reloadGraph];
 }
 
+- (void)releaseGraph
+{
+    [self.graphView removePlots];
+    self.graphView = nil;
+}
+
 - (NSArray *)thinPoints:(NSArray *)fullPoints
 {
     //Make graph look smoother by thinning out the number of data points

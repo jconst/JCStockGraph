@@ -30,4 +30,6 @@
 - (void)hideYAxis;
 - (void)addRangeLabel;
 
+-(void)removePlots;
+
 @end

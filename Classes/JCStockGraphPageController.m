@@ -45,6 +45,19 @@
     [self reloadViews];
 }
 
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+    if (graphControllers!=nil)
+    {
+        for (JCStockGraphController *gc in graphControllers)
+        {
+            [gc releaseGraph];
+            [gc removeFromParentViewController];
+        }
+    }
+}
+
 - (void)reloadViews
 {
     if (pagingScrollView) {

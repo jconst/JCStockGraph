@@ -23,6 +23,21 @@
     [self.hostView.hostedGraph reloadData];
 }
 
+#pragma mark - some release handle
+-(void)removePlots
+{
+    for (CPTPlot* plot in [self.hostView.hostedGraph allPlots])
+    {
+        plot.dataSource = nil;
+        plot.delegate = nil;
+        [plot deleteDataInIndexRange:NSMakeRange(0, plot.cachedDataCount)];
+        [self.hostView.hostedGraph removePlot:plot];
+    }
+    [self.hostView removeFromSuperview];
+    self.hostView = nil;
+}
+
+
 #pragma mark - Chart behavior
 
 -(void)configureHost
