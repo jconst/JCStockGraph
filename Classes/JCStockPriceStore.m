@@ -157,7 +157,8 @@ static JCStockPriceStore *sharedInstance;
         }
         
         
-        if (needUpdateLong) {
+        if (needUpdateLong)
+        {
             //Build URL:
             NSString *urlString =[NSString stringWithFormat:@"http://ichart.finance.yahoo.com/table.csv?s=%@&%@&%@", ticker,[startDate yqlStartString],[endDate yqlEndString]];
             
@@ -166,7 +167,8 @@ static JCStockPriceStore *sharedInstance;
             
             //Create Request:
             AFHTTPRequestOperation *operation =[[AFHTTPRequestOperation alloc] initWithRequest:[NSURLRequest requestWithURL:url]];
-            [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+            [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject)
+            {
                 NSString *csvString =[[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
                 NSArray *newPoints =[self dataPointsForCSVString:csvString];
                 [points removeAllObjects];
@@ -175,10 +177,20 @@ static JCStockPriceStore *sharedInstance;
                 
                 [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
                 
-            }                                failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                // still try today stock price...
-                [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
-                NSLog(@"CSV request failure: %@", error);
+            }
+            failure:^(AFHTTPRequestOperation *operation, NSError *error)
+            {
+                // 201501. maybe TPO of Taiwan..
+                if ([ticker hasSuffix:@".TW"])
+                {
+                    // change .TW to .TWO
+                    NSString *qNewTicker = [NSString stringWithFormat:@"%@O", ticker];
+                    [self getDataForTicker:qNewTicker parentPage:qParent withProgress:progBlock completion:comp];
+                } else {
+                    // still try today stock price...
+                    [self getTodayStockPrice:ticker longPoints:points todayPoints:today_points withProgress:progBlock completion:comp];
+                    NSLog(@"CSV request failure: %@", error);
+                }
             }];
             
             // Dowload Progress
