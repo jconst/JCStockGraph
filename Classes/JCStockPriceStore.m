@@ -136,7 +136,8 @@ static JCStockPriceStore *sharedInstance;
             NSDate *cacheDate = cacheDict[@"cacheDate"];
             if (![cacheDate mt_isWithinSameDay:endDate]
                 ||[points count] < 50 // abnormal case..
-                ) {
+                )
+            {
                 needUpdateTotday = YES;
                 needUpdateLong = YES;
             } else {
