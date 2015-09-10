@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "CorePlot/CorePlot-CocoaTouch.h"
+//#import "CorePlot/CorePlot-CocoaTouch.h"
+#import "CorePlot-CocoaTouch.h"
 #import "JCStockGraphController.h"
 
 @class JCStockPriceStore;
