@@ -16,9 +16,9 @@ Pod::Spec.new do |s|
 
   s.public_header_files = 'Classes/*.h'
   s.dependency 'CorePlot', '~> 1.5'
-  s.dependency 'AFNetworking', '~> 2.0'
+  s.dependency 'AFNetworking', '~>  1.3.0'
   s.dependency 'MBProgressHUD', '~> 0.8'
-  s.dependency 'MTDates', '~> 0.12'
+  s.dependency 'MTDates', '~> 0.13.0'
   s.dependency 'FontasticIcons', '~> 0.5'
 
 end

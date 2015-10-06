@@ -1,3 +1,5 @@
+#ifndef MHPagingScrollView_h
+#define MHPagingScrollView_h
 
 @class MHPagingScrollView;
 
@@ -79,3 +81,5 @@
 - (void)didReceiveMemoryWarning;
 
 @end
+
+#endif

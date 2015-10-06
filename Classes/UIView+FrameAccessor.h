@@ -5,6 +5,8 @@
 //  Created by Alex Denisov on 18.03.12.
 //  Copyright (c) 2012 CoreInvader. All rights reserved.
 //
+#ifndef UIView_FrameAccessor_h
+#define UIView_FrameAccessor_h
 
 #import <UIKit/UIKit.h>
 
@@ -31,3 +33,5 @@
 - (void)setRight:(CGFloat)newRight;
 
 @end
+
+#endif

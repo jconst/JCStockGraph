@@ -45,6 +45,19 @@
     [self reloadViews];
 }
 
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+    if (graphControllers!=nil)
+    {
+        for (JCStockGraphController *gc in graphControllers)
+        {
+            [gc releaseGraph];
+            [gc removeFromParentViewController];
+        }
+    }
+}
+
 - (void)reloadViews
 {
     if (pagingScrollView) {
@@ -76,7 +89,7 @@
         return;
     }
     
-    JCStockGraphController *graphController = [[JCStockGraphController alloc] initWithTicker:self.ticker];
+    JCStockGraphController *graphController = [[JCStockGraphController alloc] initWithTicker:self.ticker parent:self];
     //graphController.view.frame            = self.view.bounds;
     graphController.graphOffset             = self.graphOffset;
     graphController.graphSize               = self.graphSize;

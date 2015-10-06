@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "CorePlot/CorePlot-CocoaTouch.h"
+//#import "CorePlot/CorePlot-CocoaTouch.h"
+#import "CorePlot-CocoaTouch.h"
 #import "JCStockGraphController.h"
 
 @class JCStockPriceStore;
@@ -29,5 +30,7 @@
 - (void)hideXAxis;
 - (void)hideYAxis;
 - (void)addRangeLabel;
+
+-(void)removePlots;
 
 @end

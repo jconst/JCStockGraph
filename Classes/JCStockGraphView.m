@@ -23,6 +23,21 @@
     [self.hostView.hostedGraph reloadData];
 }
 
+#pragma mark - some release handle
+-(void)removePlots
+{
+    for (CPTPlot* plot in [self.hostView.hostedGraph allPlots])
+    {
+        plot.dataSource = nil;
+        plot.delegate = nil;
+        [plot deleteDataInIndexRange:NSMakeRange(0, plot.cachedDataCount)];
+        [self.hostView.hostedGraph removePlot:plot];
+    }
+    [self.hostView removeFromSuperview];
+    self.hostView = nil;
+}
+
+
 #pragma mark - Chart behavior
 
 -(void)configureHost
@@ -83,7 +98,9 @@
 - (void)configureXAxisWithPoints:(NSArray *)points delegate:(id<CPTAxisDelegate>)delegate
 {
     // 0 - increase padding to make room for axis labels
-    self.hostView.hostedGraph.plotAreaFrame.paddingBottom = 24;
+    self.hostView.hostedGraph.plotAreaFrame.paddingBottom = 20;
+    self.hostView.hostedGraph.plotAreaFrame.paddingRight = 20;
+    self.hostView.hostedGraph.plotAreaFrame.paddingTop = 6;
     
 	// 1 - Get axis set
 	CPTXYAxisSet *axisSet = (CPTXYAxisSet *) self.hostView.hostedGraph.axisSet;
@@ -115,6 +132,7 @@
     priceFormatter.numberStyle              = kCFNumberFormatterCurrencyStyle;
     priceFormatter.maximumSignificantDigits = 3;
     priceFormatter.usesSignificantDigits    = YES;
+    priceFormatter.currencySymbol = @"$";
     
     CPTXYAxis *y         = axisSet.yAxis;
     y.axisConstraints    = [CPTConstraints constraintWithLowerOffset:0];
@@ -194,7 +212,7 @@
     rangeLabel.backgroundColor  = [UIColor colorWithWhite:0.0 alpha:0.4];
     [rangeLabel sizeToFit];
     rangeLabel.width            += 8;
-    rangeLabel.y                = self.height - rangeLabel.height;
+    rangeLabel.y                = self.height + 4; // - rangeLabel.height;
     rangeLabel.right            = self.right;
     rangeLabel.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleLeftMargin;
     [self addSubview:rangeLabel];
